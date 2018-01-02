@@ -85,6 +85,3 @@ node_modules 是普通的css-loader
 
 ```
 
-## 联系方式
-欢迎学习交流，有任何意见可以联系我：
-email：704694231@qq.com
