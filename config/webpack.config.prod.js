@@ -12,7 +12,7 @@ const eslintFormatter = require('react-dev-utils/eslintFormatter');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const paths = require('./paths');
 const getClientEnvironment = require('./env');
-
+const theme  = require('../package.json').theme;
 // Webpack uses `publicPath` to determine where the app is being served from.
 // It requires a trailing slash, or the file assets will get an incorrect path.
 const publicPath = paths.servedPath;
@@ -90,8 +90,10 @@ module.exports = {
     // for React Native Web.
     extensions: ['.web.js', '.js', '.json', '.web.jsx', '.jsx'],
     alias: {
-      Actions:path.resolve("src/actions"),
+      RAndA:path.resolve("src/actions"),
       Utils:path.resolve("src/utils"),
+      PubCom:path.resolve("src/publicCom"),
+      Config:path.resolve("src/config"),
       // Support React Native Web
       // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
       'react-native': 'react-native-web',
@@ -122,7 +124,11 @@ module.exports = {
             loader: "babel-loader",
             options: {
               plugins: [
-                ['import', { libraryName: 'antd', style: 'css' }],
+                ['import', {
+                  "libraryName": "antd",
+                  "libraryDirectory": "lib",   // default: lib
+                  "style": true
+                }],
               ],
               // This is a feature of `babel-loader` for webpack (not Babel itself).
               // It enables caching results in ./node_modules/.cache/babel-loader/
@@ -174,42 +180,41 @@ module.exports = {
             test: /\.css$/,
             include:paths.appNodeModules,
             loader: ExtractTextPlugin.extract(
-              Object.assign(
-                {
-                  fallback: require.resolve('style-loader'),
-                  use: [
+                Object.assign(
                     {
-                      loader: require.resolve('css-loader'),
-                      options: {
-                        importLoaders: 1,
-                        minimize: true,
-                        sourceMap: shouldUseSourceMap,
-                      },
-                    },
-                    {
-                      loader: require.resolve('postcss-loader'),
-                      options: {
-                        // Necessary for external CSS imports to work
-                        // https://github.com/facebookincubator/create-react-app/issues/2677
-                        ident: 'postcss',
-                        plugins: () => [
-                          require('postcss-flexbugs-fixes'),
-                          autoprefixer({
-                            browsers: [
-                              '>1%',
-                              'last 4 versions',
-                              'Firefox ESR',
-                              'not ie < 9', // React doesn't support IE8 anyway
+                      fallback: require.resolve('style-loader'),
+                      use: [
+                        {
+                          loader: require.resolve('css-loader'),
+                          options: {
+                            importLoaders: 1,
+                            minimize: true,
+                          },
+                        },
+                        {
+                          loader: require.resolve('postcss-loader'),
+                          options: {
+                            // Necessary for external CSS imports to work
+                            // https://github.com/facebookincubator/create-react-app/issues/2677
+                            ident: 'postcss',
+                            plugins: () => [
+                              require('postcss-flexbugs-fixes'),
+                              autoprefixer({
+                                browsers: [
+                                  '>1%',
+                                  'last 4 versions',
+                                  'Firefox ESR',
+                                  'not ie < 9', // React doesn't support IE8 anyway
+                                ],
+                                flexbox: 'no-2009',
+                              }),
                             ],
-                            flexbox: 'no-2009',
-                          }),
-                        ],
-                      },
+                          },
+                        },
+                      ],
                     },
-                  ],
-                },
-                extractTextPluginOptions
-              )
+                    extractTextPluginOptions
+                )
             ),
             // Note: this won't work without `new ExtractTextPlugin()` in `plugins`.
           },
@@ -226,7 +231,6 @@ module.exports = {
                           options: {
                             importLoaders: 1,
                             minimize: true,
-                            sourceMap: shouldUseSourceMap,
                             modules:true,
                             localIdentName:'[name]__[local]-[hash:base64:6]',
                           },
@@ -271,16 +275,9 @@ module.exports = {
                           options: {
                             importLoaders: 1,
                             minimize: true,
-                            sourceMap: shouldUseSourceMap,
                             modules:true,
                             localIdentName:'[name]__[local]-[hash:base64:6]',
                           },
-                        },
-                        {
-                          loader: "sass-loader",
-                          options: {
-                            sourceMap: true
-                          }
                         },
                         {
                           loader: require.resolve('postcss-loader'),
@@ -301,6 +298,9 @@ module.exports = {
                               })
                             ]
                           }
+                        },
+                        {
+                          loader: "sass-loader"
                         }
                       ]
                     },
@@ -308,6 +308,36 @@ module.exports = {
                 )
             )
             // Note: this won't work without `new ExtractTextPlugin()` in `plugins`.
+          },
+          {
+            test: /\.less$/,
+            loader: ExtractTextPlugin.extract(
+                Object.assign({
+                  fallback: require.resolve('style-loader'),
+                  use: [
+                    { loader: 'css-loader'},
+                    {
+                      loader: 'postcss-loader',
+                      options: {
+                        ident: 'postcss', // <= this line
+                        plugins: () => [autoprefixer(
+                            { browsers: ['iOS >= 7', 'Android >= 4.1',
+                              'last 10 Chrome versions', 'last 10 Firefox versions',
+                              'Safari >= 6', 'ie > 8']
+                            }
+                        )],
+                      },
+                    },
+                    {
+                      loader: 'less-loader',
+                      options: {
+                        "modifyVars": theme
+                      }
+                    }
+                  ]
+                })
+                ,extractTextPluginOptions)
+
           },
           // "file" loader makes sure assets end up in the `build` folder.
           // When you `import` an asset, you get its filename.

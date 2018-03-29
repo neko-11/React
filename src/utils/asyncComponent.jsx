@@ -10,8 +10,8 @@
 import asyncComponent from './AsyncComponentFn'
 
 
-export const AsyncComponent = (path)=>{
+export const AsyncComponent = (component)=>{
     return (
-        asyncComponent(() => import('../container/'+path))
-    )
+        asyncComponent(() => import('../container/'+component))
+)
 };

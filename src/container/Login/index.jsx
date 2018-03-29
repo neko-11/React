@@ -1,10 +1,12 @@
 import React,{ Component } from 'react'
 //引入login的头部
 //import LoginHeader from 'PubComponents/loginHeader'
-import { Form, Icon, Input, Checkbox,Button ,Col ,Row ,message,Tooltip} from 'antd';
+import { Form, Icon, Input, Checkbox,Button ,Col ,Row ,message, Tooltip ,Modal} from 'antd';
 const FormItem = Form.Item;
 import { Link , withRouter } from 'react-router-dom'
+import { Map } from 'immutable';
 //引入组件sass
+import { AsyncPost } from 'Utils/utils';
 import style from './login.scss'
 //引用，不要签名的发起请求方式，写入cookie的util，还有需要签名的请求
 //import { NotSigAsyncPost , fExportSetCookieMes ,AsyncPost} from 'Utils/utils';
@@ -14,13 +16,21 @@ import 'particles.js'
 class Login extends Component {
     constructor(props) {
         super(props);
-        //防止重复提交的flag
-        this.loginflag = true;
+        this.state = {
+            data:Map({
+                //防止重复提交的flag
+                loginflag:false,
+            })
+        };
     }
 
 
     componentDidMount(){
-        //particlesJS()
+        //重定向防止重复登录
+        if (sessionStorage.getItem("userName")){
+            this.props.history.replace('/home');
+        }
+
         //粒子运动动画
         this.particlesConfig();
     }
@@ -140,17 +150,38 @@ class Login extends Component {
     //提交登录信息
     handleSubmit = (e) => {
         e.preventDefault();
-        if (this.loginflag){
-            this.loginflag = false;
-            this.props.form.validateFields((err, values) => {
-                if (!err) {
-                    this.loginflag = true
-                }
-            });
-        }else{
-            message.error('后台正在处理中，请稍等 !')
-        }
+        this.props.form.validateFields((err, values) => {
+            if (!err) {
+                this.setState({
+                    data:this.state.data.update('loginflag',()=>true)
+                },()=>{
+                    AsyncPost('/api/v1/education/User/checkLogin',{
+                        userName:values.userName,
+                        userPassword: values.password
+                    },'post',(data)=>{
+                        if (data.code === 0 ){
+                            this.setState({
+                                data:this.state.data.update('loginflag',()=>false)
+                            },()=>{
+                                message.success('登录成功！');
+                                this.props.history.replace('/home');
+                                sessionStorage.setItem("userName", values.userName);
+                            });
+                        }else if (data.code === 1){
+                            this.setState({
+                                data:this.state.data.update('loginflag',()=>false)
+                            },()=>{
+                                message.error('用户名或者密码错误！')
+                            })
+                        }
+                    });
+                });
+            }
+        });
     };
+
+
+
 
     render() {
         const { getFieldDecorator } = this.props.form;
@@ -169,10 +200,9 @@ class Login extends Component {
                                     <FormItem>
                                         {getFieldDecorator('userName', {
                                             rules: [{
-                                                type: 'email', message: '请输入正确的邮箱',
-                                            },{ required: true, message: '请输入您的邮箱 !' }],
+                                            },{ required: true, message: '请输入您的账号 !',whitespace: true }],
                                         })(
-                                            <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="邮箱" />
+                                            <Input prefix={<Icon type="user" style={{ fontSize: 13 }} />} placeholder="账号" />
                                         )}
                                     </FormItem>
                                     {/*密码框*/}
@@ -185,19 +215,13 @@ class Login extends Component {
                                     </FormItem>
                                     {/*登录按钮*/}
                                     <FormItem>
-                                        {getFieldDecorator('remember', {
-                                            valuePropName: 'checked',
-                                            initialValue: true,
-                                        })(
-                                            <Checkbox>记住我</Checkbox>
-                                        )}
                                         <Tooltip title="请联系管理员">
                                             <a className={style.login_form_forgot}>忘记密码？</a>
                                         </Tooltip>
-                                        <Button type="primary" htmlType="submit" className={style.login_form_button}>
+                                        <Button loading={this.state.data.get('loginflag')} type="primary" htmlType="submit" className={style.login_form_button}>
                                             登 录
                                         </Button>
-                                        或者 <Link to='/register'>现在注册</Link>
+                                        {/*<span>或者 </span><a href="javascript:void(0)" onClick={() => this.resign(true)}>现在注册</a>*/}
                                     </FormItem>
                                 </Form>
                             </div>

@@ -1,0 +1,33 @@
+.logoDiv{
+  width: 40px;
+  height: 40px;
+  background: #1da57a;
+  border-radius: 40px;
+  text-align: center;
+  line-height: 40px;
+  color: #fff;
+  font-size: 12px;
+}
+.logoImg{
+  border-radius: 40px;
+  font-size: 0;
+}
+.tittle{
+  font-size: 16px;
+  border-left: 4px solid #1da57a;
+  padding: 0 0 0 10px;
+  margin-bottom: 40px;
+}
+
+.imgbox{
+  :global(.ant-modal-body){
+    text-align: center;
+  }
+  :global(.avatar-uploader){
+    display: inline-block;
+    :global(.ant-upload ){
+      width: 300px;
+      height: 300px;
+    }
+  }
+}

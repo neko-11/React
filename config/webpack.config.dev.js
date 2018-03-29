@@ -11,7 +11,7 @@ const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const getClientEnvironment = require('./env');
 const paths = require('./paths');
 const antd = require('antd');
-
+const theme  = require('../package.json').theme;
 // Webpack uses `publicPath` to determine where the app is being served from.
 // In development, we always serve from the root. This makes config easier.
 const publicPath = '/';
@@ -62,8 +62,10 @@ module.exports = {
     ),
     extensions: ['.web.js', '.js', '.json', '.web.jsx', '.jsx'],
     alias: {
-      Actions:path.resolve("src/actions"),
+      RAndA:path.resolve("src/actions"),
       Utils:path.resolve("src/utils"),
+      PubCom:path.resolve("src/publicCom"),
+      Config:path.resolve("src/config"),
       // Support React Native Web
       // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
       'react-native': 'react-native-web',
@@ -83,7 +85,11 @@ module.exports = {
             loader: "babel-loader",
             options: {
               plugins: [
-                ['import', { libraryName: 'antd', style: 'css' }],
+                ['import', {
+                  "libraryName": "antd",
+                  "libraryDirectory": "lib",   // default: lib
+                  "style": true
+                }],
               ],
               // This is a feature of `babel-loader` for webpack (not Babel itself).
               // It enables caching results in ./node_modules/.cache/babel-loader/
@@ -207,14 +213,7 @@ module.exports = {
                   importLoaders: 1,
                   modules:true,
                   localIdentName:'[name]__[local]-[hash:base64:6]',
-                  sourceMap: true
                 },
-              },
-              {
-                loader: "sass-loader",
-                options: {
-                  sourceMap: true
-                }
               },
               {
                 loader: require.resolve('postcss-loader'),
@@ -232,10 +231,37 @@ module.exports = {
                       flexbox: 'no-2009',
                     }),
                   ],
-                  sourceMap: true
                 },
-              }
+              },
+              {
+                loader: "sass-loader",
+              },
             ],
+          },
+          {
+            test: /\.less$/,
+            use: [
+              { loader: 'style-loader'},
+              { loader: 'css-loader'},
+              {
+                loader: 'postcss-loader',
+                options: {
+                  ident: 'postcss',
+                  plugins: () => [autoprefixer(
+                      { browsers: ['iOS >= 7', 'Android >= 4.1',
+                        'last 10 Chrome versions', 'last 10 Firefox versions',
+                        'Safari >= 6', 'ie > 8']
+                      }
+                  )],
+                },
+              },
+              {
+                loader: 'less-loader',
+                options: {
+                  "modifyVars": theme
+                }
+              }
+            ]
           },
           // "file" loader makes sure those assets get served by WebpackDevServer.
           // When you `import` an asset, you get its (virtual) filename.
