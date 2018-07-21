@@ -155,19 +155,20 @@ class Login extends Component {
                 this.setState({
                     data:this.state.data.update('loginflag',()=>true)
                 },()=>{
-                    AsyncPost('/api/v1/education/User/checkLogin',{
+                    AsyncPost('/api/v1/com/hand/cuxUsers/checkLogin',{
                         userName:values.userName,
-                        userPassword: values.password
+                        password: values.password
                     },'post',(data)=>{
-                        if (data.code === 0 ){
+                        if (data.code === 1 ){
                             this.setState({
                                 data:this.state.data.update('loginflag',()=>false)
                             },()=>{
                                 message.success('登录成功！');
                                 this.props.history.replace('/home');
                                 sessionStorage.setItem("userName", values.userName);
+                                sessionStorage.setItem("userId",data.result.userId);
                             });
-                        }else if (data.code === 1){
+                        }else if (data.code === 0){
                             this.setState({
                                 data:this.state.data.update('loginflag',()=>false)
                             },()=>{
