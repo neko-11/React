@@ -1,4 +1,4 @@
-import React,{ Component } from 'react'
+﻿import React,{ Component } from 'react'
 //引入login的头部
 //import LoginHeader from 'PubComponents/loginHeader'
 import { Form, Icon, Input, Checkbox,Button ,Col ,Row ,message, Tooltip ,Modal} from 'antd';
@@ -164,7 +164,7 @@ class Login extends Component {
                                 data:this.state.data.update('loginflag',()=>false)
                             },()=>{
                                 message.success('登录成功！');
-                                this.props.history.replace('/home');
+                                this.props.history.replace('/');
                                 sessionStorage.setItem("userName", values.userName);
                                 sessionStorage.setItem("userId",data.result.userId);
                             });
