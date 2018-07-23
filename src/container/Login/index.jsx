@@ -28,7 +28,7 @@ class Login extends Component {
     componentDidMount(){
         //重定向防止重复登录
         if (sessionStorage.getItem("userName")){
-            this.props.history.replace('/home');
+            this.props.history.replace('/');
         }
 
         //粒子运动动画
